@@ -2,7 +2,7 @@
   "id": "telys-stream-deck-integration",
   "title": "Tely's Stream Deck Integration",
   "description": "Programmable Stream Deck control for Foundry VTT and Tely's Star Rail modules.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14"

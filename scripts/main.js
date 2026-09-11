@@ -1,4 +1,15 @@
 const MODULE_ID = "telys-stream-deck-integration";
+let moduleApi = null;
+
+function getModuleApi() {
+  return moduleApi ?? game.modules.get(MODULE_ID)?.api ?? null;
+}
+
+function reconnectBridge() {
+  const bridge = getModuleApi()?.bridge;
+  if (!bridge) return;
+  bridge.connect();
+}
 
 class ActionRegistry {
   #actions = new Map();
@@ -239,15 +250,20 @@ function registerStarRailAdapter(registry) {
 function registerSettings() {
   game.settings.register(MODULE_ID, "port", {
     name: "Local Bridge Port", hint: "The local port used by the Stream Deck plugin.", scope: "client", config: true,
-    type: Number, default: 17321, onChange: () => game.modules.get(MODULE_ID).api.bridge.connect()
+    type: Number, default: 17321, onChange: reconnectBridge
   });
   game.settings.register(MODULE_ID, "pairingSecret", {
     name: "Pairing Secret", hint: "Must match the secret configured on your Stream Deck keys.", scope: "client", config: true,
-    type: String, default: "", onChange: () => game.modules.get(MODULE_ID).api.bridge.connect()
+    type: String, default: "", onChange: reconnectBridge
   });
   game.settings.register(MODULE_ID, "autoConnect", {
     name: "Connect to Stream Deck", hint: "Connect this browser to the local Stream Deck plugin.", scope: "client", config: true,
-    type: Boolean, default: true, onChange: (enabled) => enabled ? game.modules.get(MODULE_ID).api.bridge.connect() : game.modules.get(MODULE_ID).api.bridge.disconnect()
+    type: Boolean, default: true,
+    onChange: (enabled) => {
+      const bridge = getModuleApi()?.bridge;
+      if (!bridge) return;
+      enabled ? bridge.connect() : bridge.disconnect();
+    }
   });
 }
 
@@ -257,20 +273,24 @@ Hooks.once("init", () => {
   const bridge = new DeckBridge(registry);
   registerCoreActions(registry);
   registerStarRailAdapter(registry);
-  game.modules.get(MODULE_ID).api = {
+  moduleApi = {
     registerAction: (definition) => registry.register(definition),
     unregisterAction: (id) => registry.unregister(id),
     catalog: () => registry.catalog(),
     publishState: (actionId, state) => bridge.publishState(actionId, state),
     bridge
   };
+  game.modules.get(MODULE_ID).api = moduleApi;
 });
 
 Hooks.once("ready", () => {
-  const api = game.modules.get(MODULE_ID).api;
+  const api = getModuleApi();
+  if (!api?.bridge) {
+    console.error(`${MODULE_ID} | Bridge API was not initialized.`);
+    return;
+  }
   Hooks.callAll("telysStreamDeckReady", api);
   api.bridge.connect();
 });
 
-Hooks.on("telysStreamDeckCatalogChanged", () => game.modules.get(MODULE_ID)?.api?.bridge.refreshCatalog());
-
+Hooks.on("telysStreamDeckCatalogChanged", () => getModuleApi()?.bridge?.refreshCatalog());
