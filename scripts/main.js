@@ -27,7 +27,7 @@ class ActionRegistry {
       ...definition
     };
     this.#actions.set(normalized.id, normalized);
-    Hooks.callAll("telysStreamDeckCatalogChanged", this.catalog());
+    if (game.ready) Hooks.callAll("telysStreamDeckCatalogChanged", this.catalog());
     return () => this.#actions.delete(normalized.id);
   }
 
@@ -41,7 +41,7 @@ class ActionRegistry {
 
   catalog(user = game.user) {
     return [...this.#actions.values()]
-      .filter((action) => action.permission(user))
+      .filter((action) => !user || action.permission(user))
       .map(({ id, name, group, icon }) => ({ id, name, group, icon }));
   }
 }
@@ -218,7 +218,7 @@ function clickFirst(selectors) {
 
 function registerStarRailAdapter(registry) {
   const moduleActive = () => game.modules.get("telys-star-rail-ultimates")?.active;
-  const visible = (user) => moduleActive() && user.active;
+  const visible = (user) => moduleActive() && Boolean(user?.active);
 
   registry.register({
     id: "star-rail.open-hub", name: "Open HSR Hub", group: "Star Rail", permission: visible,
@@ -229,11 +229,11 @@ function registerStarRailAdapter(registry) {
     execute: () => clickFirst(["[data-action='open-missions']", "[data-tool='missions']", ".hsr-missions-button"])
   });
   registry.register({
-    id: "star-rail.open-gm-panel", name: "Open GM Panel", group: "Star Rail", permission: (user) => moduleActive() && user.isGM,
+    id: "star-rail.open-gm-panel", name: "Open GM Panel", group: "Star Rail", permission: (user) => moduleActive() && Boolean(user?.isGM),
     execute: () => clickFirst(["[data-action='open-gm-panel']", "[data-tool='hsr-gm-panel']", ".hsr-gm-panel-button"])
   });
   registry.register({
-    id: "star-rail.aha-instant", name: "Aha Instant", group: "Star Rail", permission: (user) => moduleActive() && user.isGM,
+    id: "star-rail.aha-instant", name: "Aha Instant", group: "Star Rail", permission: (user) => moduleActive() && Boolean(user?.isGM),
     execute: ({ payload }) => Hooks.callAll("telysStreamDeckStarRailAction", "aha-instant", payload)
   });
   registry.register({
