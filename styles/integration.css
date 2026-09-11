@@ -1,0 +1,18 @@
+.telys-stream-deck-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.telys-stream-deck-status::before {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #a73434;
+  content: "";
+}
+
+.telys-stream-deck-status.connected::before {
+  background: #42c66a;
+}
+

@@ -1,0 +1,24 @@
+{
+  "id": "telys-stream-deck-integration",
+  "title": "Tely's Stream Deck Integration",
+  "description": "Programmable Stream Deck control for Foundry VTT and Tely's Star Rail modules.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Telynor"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/integration.css"
+  ],
+  "socket": false,
+  "manifest": "https://raw.githubusercontent.com/Telynor/Telynor-telys-stream-deck-integration/main/module.json",
+  "download": "https://raw.githubusercontent.com/Telynor/Telynor-telys-stream-deck-integration/main/telys-stream-deck-integration.zip"
+}
